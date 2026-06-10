@@ -1,0 +1,105 @@
+partido_id,fase,grupo,fecha,equipo_a,equipo_b,sede
+1,Grupos,A,2026-06-11,México,Sudáfrica,Ciudad de México
+2,Grupos,A,2026-06-11,Corea del Sur,República Checa,Guadalajara
+3,Grupos,D,2026-06-12,Estados Unidos,Paraguay,Los Ángeles
+4,Grupos,B,2026-06-12,Canadá,Bosnia y Herzegovina,Toronto
+5,Grupos,C,2026-06-13,Brasil,Marruecos,Nueva York/Nueva Jersey
+6,Grupos,C,2026-06-13,Haití,Escocia,Boston
+7,Grupos,B,2026-06-13,Catar,Suiza,San Francisco
+8,Grupos,D,2026-06-13,Australia,Turquía,Vancouver
+9,Grupos,F,2026-06-14,Países Bajos,Japón,Dallas
+10,Grupos,F,2026-06-14,Suecia,Túnez,Monterrey
+11,Grupos,E,2026-06-14,Alemania,Curazao,Houston
+12,Grupos,E,2026-06-14,Costa de Marfil,Ecuador,Filadelfia
+13,Grupos,H,2026-06-15,España,Cabo Verde,Atlanta
+14,Grupos,G,2026-06-15,Irán,Nueva Zelanda,Los Ángeles
+15,Grupos,H,2026-06-15,Arabia Saudita,Uruguay,Miami
+16,Grupos,G,2026-06-15,Bélgica,Egipto,Seattle
+17,Grupos,I,2026-06-16,Francia,Senegal,Nueva York/Nueva Jersey
+18,Grupos,I,2026-06-16,Irak,Noruega,Boston
+19,Grupos,J,2026-06-16,Argentina,Argelia,Kansas City
+20,Grupos,J,2026-06-16,Austria,Jordania,San Francisco
+21,Grupos,L,2026-06-17,Inglaterra,Croacia,Dallas
+22,Grupos,K,2026-06-17,Portugal,RD Congo,Houston
+23,Grupos,K,2026-06-17,Uzbekistán,Colombia,Ciudad de México
+24,Grupos,L,2026-06-17,Ghana,Panamá,Toronto
+25,Grupos,A,2026-06-18,República Checa,Sudáfrica,Atlanta
+26,Grupos,B,2026-06-18,Suiza,Bosnia y Herzegovina,Los Ángeles
+27,Grupos,B,2026-06-18,Canadá,Catar,Vancouver
+28,Grupos,A,2026-06-18,México,Corea del Sur,Guadalajara
+29,Grupos,C,2026-06-19,Escocia,Marruecos,Boston
+30,Grupos,C,2026-06-19,Brasil,Haití,Filadelfia
+31,Grupos,D,2026-06-19,Turquía,Paraguay,San Francisco
+32,Grupos,D,2026-06-19,Estados Unidos,Australia,Seattle
+33,Grupos,F,2026-06-20,Túnez,Japón,Monterrey
+34,Grupos,F,2026-06-20,Países Bajos,Suecia,Houston
+35,Grupos,E,2026-06-20,Ecuador,Curazao,Kansas City
+36,Grupos,E,2026-06-20,Alemania,Costa de Marfil,Toronto
+37,Grupos,H,2026-06-21,España,Arabia Saudita,Atlanta
+38,Grupos,G,2026-06-21,Bélgica,Irán,Los Ángeles
+39,Grupos,H,2026-06-21,Uruguay,Cabo Verde,Miami
+40,Grupos,G,2026-06-21,Nueva Zelanda,Egipto,Vancouver
+41,Grupos,J,2026-06-22,Argentina,Austria,Dallas
+42,Grupos,I,2026-06-22,Noruega,Senegal,Nueva York/Nueva Jersey
+43,Grupos,I,2026-06-22,Francia,Irak,Filadelfia
+44,Grupos,J,2026-06-22,Jordania,Argelia,San Francisco
+45,Grupos,L,2026-06-23,Inglaterra,Ghana,Boston
+46,Grupos,K,2026-06-23,Portugal,Uzbekistán,Houston
+47,Grupos,L,2026-06-23,Panamá,Croacia,Toronto
+48,Grupos,K,2026-06-23,Colombia,RD Congo,Guadalajara
+49,Grupos,C,2026-06-24,Marruecos,Haití,Atlanta
+50,Grupos,A,2026-06-24,Sudáfrica,Corea del Sur,Monterrey
+51,Grupos,A,2026-06-24,México,República Checa,Ciudad de México
+52,Grupos,C,2026-06-24,Escocia,Brasil,Miami
+53,Grupos,B,2026-06-24,Bosnia y Herzegovina,Catar,Seattle
+54,Grupos,B,2026-06-24,Canadá,Suiza,Vancouver
+55,Grupos,F,2026-06-25,Japón,Suecia,Dallas
+56,Grupos,E,2026-06-25,Ecuador,Alemania,Nueva York/Nueva Jersey
+57,Grupos,D,2026-06-25,Estados Unidos,Turquía,Los Ángeles
+58,Grupos,F,2026-06-25,Túnez,Países Bajos,Kansas City
+59,Grupos,E,2026-06-25,Curazao,Costa de Marfil,Filadelfia
+60,Grupos,D,2026-06-25,Paraguay,Australia,San Francisco
+61,Grupos,I,2026-06-26,Noruega,Francia,Boston
+62,Grupos,H,2026-06-26,Cabo Verde,Arabia Saudita,Houston
+63,Grupos,G,2026-06-26,Egipto,Irán,Seattle
+64,Grupos,I,2026-06-26,Senegal,Irak,Toronto
+65,Grupos,G,2026-06-26,Nueva Zelanda,Bélgica,Vancouver
+66,Grupos,H,2026-06-26,Uruguay,España,Guadalajara
+67,Grupos,J,2026-06-27,Jordania,Argentina,Dallas
+68,Grupos,K,2026-06-27,RD Congo,Uzbekistán,Atlanta
+69,Grupos,L,2026-06-27,Panamá,Inglaterra,Nueva York/Nueva Jersey
+70,Grupos,J,2026-06-27,Argelia,Austria,Kansas City
+71,Grupos,K,2026-06-27,Colombia,Portugal,Miami
+72,Grupos,L,2026-06-27,Croacia,Ghana,Filadelfia
+73,Dieciseisavos,,2026-06-28,POR_DEFINIR_73A,POR_DEFINIR_73B,Por confirmar
+74,Dieciseisavos,,2026-06-28,POR_DEFINIR_74A,POR_DEFINIR_74B,Por confirmar
+75,Dieciseisavos,,2026-06-28,POR_DEFINIR_75A,POR_DEFINIR_75B,Por confirmar
+76,Dieciseisavos,,2026-06-29,POR_DEFINIR_76A,POR_DEFINIR_76B,Por confirmar
+77,Dieciseisavos,,2026-06-29,POR_DEFINIR_77A,POR_DEFINIR_77B,Por confirmar
+78,Dieciseisavos,,2026-06-29,POR_DEFINIR_78A,POR_DEFINIR_78B,Por confirmar
+79,Dieciseisavos,,2026-06-30,POR_DEFINIR_79A,POR_DEFINIR_79B,Por confirmar
+80,Dieciseisavos,,2026-06-30,POR_DEFINIR_80A,POR_DEFINIR_80B,Por confirmar
+81,Dieciseisavos,,2026-06-30,POR_DEFINIR_81A,POR_DEFINIR_81B,Por confirmar
+82,Dieciseisavos,,2026-07-01,POR_DEFINIR_82A,POR_DEFINIR_82B,Por confirmar
+83,Dieciseisavos,,2026-07-01,POR_DEFINIR_83A,POR_DEFINIR_83B,Por confirmar
+84,Dieciseisavos,,2026-07-01,POR_DEFINIR_84A,POR_DEFINIR_84B,Por confirmar
+85,Dieciseisavos,,2026-07-02,POR_DEFINIR_85A,POR_DEFINIR_85B,Por confirmar
+86,Dieciseisavos,,2026-07-02,POR_DEFINIR_86A,POR_DEFINIR_86B,Por confirmar
+87,Dieciseisavos,,2026-07-03,POR_DEFINIR_87A,POR_DEFINIR_87B,Por confirmar
+88,Dieciseisavos,,2026-07-03,POR_DEFINIR_88A,POR_DEFINIR_88B,Por confirmar
+89,Octavos,,2026-07-04,POR_DEFINIR_89A,POR_DEFINIR_89B,Por confirmar
+90,Octavos,,2026-07-04,POR_DEFINIR_90A,POR_DEFINIR_90B,Por confirmar
+91,Octavos,,2026-07-05,POR_DEFINIR_91A,POR_DEFINIR_91B,Por confirmar
+92,Octavos,,2026-07-05,POR_DEFINIR_92A,POR_DEFINIR_92B,Por confirmar
+93,Octavos,,2026-07-06,POR_DEFINIR_93A,POR_DEFINIR_93B,Por confirmar
+94,Octavos,,2026-07-06,POR_DEFINIR_94A,POR_DEFINIR_94B,Por confirmar
+95,Octavos,,2026-07-07,POR_DEFINIR_95A,POR_DEFINIR_95B,Por confirmar
+96,Octavos,,2026-07-07,POR_DEFINIR_96A,POR_DEFINIR_96B,Por confirmar
+97,Cuartos,,2026-07-09,POR_DEFINIR_97A,POR_DEFINIR_97B,Por confirmar
+98,Cuartos,,2026-07-09,POR_DEFINIR_98A,POR_DEFINIR_98B,Por confirmar
+99,Cuartos,,2026-07-10,POR_DEFINIR_99A,POR_DEFINIR_99B,Por confirmar
+100,Cuartos,,2026-07-11,POR_DEFINIR_100A,POR_DEFINIR_100B,Por confirmar
+101,Semifinal,,2026-07-14,POR_DEFINIR_101A,POR_DEFINIR_101B,Por confirmar
+102,Semifinal,,2026-07-15,POR_DEFINIR_102A,POR_DEFINIR_102B,Por confirmar
+103,Tercer Puesto,,2026-07-18,POR_DEFINIR_103A,POR_DEFINIR_103B,Por confirmar
+104,Final,,2026-07-19,POR_DEFINIR_104A,POR_DEFINIR_104B,"MetLife Stadium, Nueva York/Nueva Jersey"
