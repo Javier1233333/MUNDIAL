@@ -259,6 +259,19 @@ def lambda_implicita_casa(pares: list[tuple[float, float]]) -> float:
     return float(minimize_scalar(err, bounds=(0.05, 25.0), method="bounded").x)
 
 
+def porcentajes_recomendacion(evs: list[float], temp: float = 0.08) -> list[float]:
+    """Reparte 100% de 'recomendación' entre varias apuestas según su EV.
+    Usa softmax(EV / temp): la de mayor EV se lleva el mayor porcentaje, pero
+    todas reciben una parte proporcional a qué tan buenas son. temp más chico
+    = recomendación más concentrada en la mejor. Devuelve fracciones (suman 1)."""
+    if not evs:
+        return []
+    z = np.array(evs, dtype=float) / max(temp, 1e-6)
+    z -= z.max()                      # estabilidad numérica
+    e = np.exp(z)
+    return [float(x) for x in (e / e.sum())]
+
+
 def dist_goles_totales(lam_total: float, max_g: int = 8) -> list[float]:
     """Distribución de goles totales del partido ~ Poisson(lam_total),
     de 0 a max_g goles (para graficar lo que cree la casa vs el modelo)."""

@@ -584,22 +584,41 @@ elif seccion == "💰 Momios y Valor (EV)":
             st.subheader("Detalle por línea")
             st.dataframe(pd.DataFrame(filas), hide_index=True, width="stretch")
 
-            # Recomendación global: mejor EV entre todas las líneas y lados
-            st.subheader("Recomendación")
-            etiqueta, mejor, prob = max(evaluaciones, key=lambda e: e[1]["ev"])
-            if mejor["es_valor"]:
-                st.success(
-                    f"🎯 **Apostar {etiqueta} goles** — es la jugada con más valor. "
-                    f"El modelo le da **{prob:.1%}** y la casa solo implica "
-                    f"{mejor['implicita']:.1%} con su cuota "
-                    f"{fmt_momio(mejor['momio_decimal'])}. "
-                    f"EV **{mejor['ev']:+.1%}** · cuota justa {mejor['cuota_justa']:.2f} "
-                    f"· Kelly {mejor['kelly']:.1%} del bankroll.")
-            else:
-                st.warning(
-                    f"⚠️ **Ninguna línea ofrece valor** con estos momios. La menos "
-                    f"mala sería {etiqueta} (EV {mejor['ev']:+.1%}), pero no compensa. "
-                    f"Mejor no apostar este mercado.")
+            # --- Índice de recomendación: reparte 100% entre todas las apuestas ---
+            st.subheader("🏅 ¿Qué apuesta de goles es la más recomendada?")
+            recos = an.porcentajes_recomendacion([r["ev"] for _, r, _ in evaluaciones])
+            ranking = sorted(
+                [{"Apuesta": f"{etq} goles", "Recomendación": rec,
+                  "Prob. de acertar": prob, "EV": r["ev"],
+                  "Cuota": fmt_momio(r["momio_decimal"]), "Valor": r["es_valor"]}
+                 for (etq, r, prob), rec in zip(evaluaciones, recos)],
+                key=lambda d: d["Recomendación"], reverse=True)
+
+            top = ranking[0]
+            algun_valor = any(d["Valor"] for d in ranking)
+            destino = st.success if top["Valor"] else st.warning
+            destino(
+                f"{'🎯' if top['Valor'] else '⚠️'} **La más recomendada: "
+                f"{top['Apuesta']}** con un **{top['Recomendación']:.0%} de "
+                f"recomendación**. Probabilidad de acertar según el modelo: "
+                f"**{top['Prob. de acertar']:.1%}**, cuota {top['Cuota']}, "
+                f"EV {top['EV']:+.1%}." +
+                ("" if top["Valor"] else " Aun así no tiene valor real (EV negativo); "
+                 "considera no apostar."))
+
+            df_rank = pd.DataFrame(ranking)
+            df_rank["Prob. de acertar"] = df_rank["Prob. de acertar"].map("{:.1%}".format)
+            df_rank["EV"] = df_rank["EV"].map("{:+.1%}".format)
+            df_rank["Valor"] = df_rank["Valor"].map({True: "✅ Sí", False: "—"})
+            st.dataframe(
+                df_rank, hide_index=True, width="stretch",
+                column_config={"Recomendación": st.column_config.ProgressColumn(
+                    "Recomendación", format="percent", min_value=0, max_value=1)})
+            st.caption("El % de recomendación reparte 100 puntos entre todas las "
+                       "apuestas según su valor esperado: cuanto más alto, mejor la "
+                       "apuesta frente a las demás." +
+                       ("" if algun_valor else " ⚠️ Ninguna tiene EV positivo: el "
+                        "porcentaje solo indica la *menos mala*."))
 
     # -----------------------------------------------------------------------
     # C) OVER/UNDER (Tarjetas o Corners)
