@@ -154,6 +154,89 @@ def tabla_corners_rol(teams: pd.DataFrame) -> pd.DataFrame:
 
 
 # ---------------------------------------------------------------------------
+# 5) ANALIZADOR DE MOMIOS Y VALOR ESPERADO (EV)
+# ---------------------------------------------------------------------------
+def americano_a_decimal(momio_americano: float) -> float:
+    """Convierte un momio americano a decimal.
+        +150  ->  1 + 150/100  = 2.50   (no favorito)
+        -200  ->  1 + 100/200  = 1.50   (favorito)
+    El momio decimal incluye el retorno de la apuesta (capital + ganancia)."""
+    a = float(momio_americano)
+    if a == 0:
+        return 0.0
+    if a > 0:
+        return 1.0 + a / 100.0
+    return 1.0 + 100.0 / abs(a)
+
+
+def probabilidad_implicita(momio_decimal: float) -> float:
+    """Probabilidad que la casa de apuestas le asigna a un evento.
+        prob_implícita = 1 / momio_decimal
+    Incluye el margen de la casa, por eso la suma de las tres (1X2) > 1."""
+    d = float(momio_decimal)
+    return 1.0 / d if d > 0 else 0.0
+
+
+def margen_overround(momio_local: float, momio_empate: float,
+                     momio_visitante: float) -> dict:
+    """Margen (overround) de la casa: comisión oculta sumando las
+    probabilidades implícitas de Local + Empate + Visitante.
+        overround = Σ (1 / momio_i)
+    Un mercado justo suma 1.00 (100%); el excedente es la ganancia teórica
+    de la casa. Devuelve también las probabilidades 'limpias' (sin margen)."""
+    p_l = probabilidad_implicita(momio_local)
+    p_e = probabilidad_implicita(momio_empate)
+    p_v = probabilidad_implicita(momio_visitante)
+    suma = p_l + p_e + p_v
+    margen = suma - 1.0
+    return {
+        "implicita_local": p_l,
+        "implicita_empate": p_e,
+        "implicita_visitante": p_v,
+        "suma_implicitas": suma,
+        "margen": margen,                       # 0.05 = 5% de comisión
+        "comision_pct": margen / suma if suma else 0.0,
+        # Probabilidades reescaladas a 100% (se les quita el margen)
+        "limpia_local": p_l / suma if suma else 0.0,
+        "limpia_empate": p_e / suma if suma else 0.0,
+        "limpia_visitante": p_v / suma if suma else 0.0,
+    }
+
+
+def valor_esperado(prob_modelo: float, momio_decimal: float) -> dict:
+    """Valor Esperado (EV) de apostar 1 unidad, comparando nuestra
+    probabilidad real (modelo) contra el momio que paga la casa.
+
+        EV = prob_modelo * (momio_decimal - 1) - (1 - prob_modelo)
+           = prob_modelo * momio_decimal - 1
+
+    EV > 0  ->  apuesta de valor (la casa paga de más): el modelo cree
+                que el evento es más probable de lo que implica el momio.
+    EV < 0  ->  la cuota no compensa el riesgo según el modelo.
+
+    Devuelve además el 'edge' (ventaja) y la fracción de Kelly sugerida."""
+    p = float(prob_modelo)
+    d = float(momio_decimal)
+    implicita = probabilidad_implicita(d)
+    ev = p * d - 1.0                     # ganancia esperada por unidad apostada
+    edge = p - implicita                 # ventaja del modelo sobre la casa
+    cuota_justa = 1.0 / p if p > 0 else float("inf")
+    # Criterio de Kelly: fracción óptima del bankroll (acotada a 0 si EV<=0)
+    b = d - 1.0
+    kelly = (p * d - 1.0) / b if b > 0 else 0.0
+    return {
+        "ev": ev,                        # ej. 0.25 = +25% de retorno esperado
+        "edge": edge,                    # ej. 0.10 = 10 puntos de ventaja
+        "implicita": implicita,
+        "prob_modelo": p,
+        "momio_decimal": d,
+        "cuota_justa": cuota_justa,
+        "kelly": max(0.0, min(kelly, 1.0)),
+        "es_valor": ev > 0,
+    }
+
+
+# ---------------------------------------------------------------------------
 # 4) PROYECCIÓN DEL TORNEO COMPLETO (104 partidos)
 # ---------------------------------------------------------------------------
 def puntos_esperados_grupo(teams: pd.DataFrame, matches: pd.DataFrame) -> pd.DataFrame:
