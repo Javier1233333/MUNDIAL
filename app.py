@@ -358,6 +358,46 @@ elif seccion == "💰 Momios y Valor (EV)":
                     f"vs {prob:.1%} del modelo. EV **{r['ev']:+.1%}** "
                     f"(necesitarías ≥ {r['cuota_justa']:.2f}).")
 
+        # Recomendación: qué lado apostar según los momios dados
+        st.subheader("Recomendación")
+        mejor = rO if rO["ev"] >= rU["ev"] else rU
+        lado = "OVER" if mejor is rO else "UNDER"
+        prob_lado = p_over if mejor is rO else p_under
+        if mejor["es_valor"]:
+            st.success(
+                f"🎯 **Apostar {lado} {linea} {unidad}** — es el lado con valor. "
+                f"El modelo le da **{prob_lado:.1%}** de probabilidad y la casa "
+                f"solo implica {mejor['implicita']:.1%} con su cuota "
+                f"{fmt_momio(mejor['momio_decimal'])}. "
+                f"Ventaja (edge): **{mejor['edge']:+.1%}** · EV **{mejor['ev']:+.1%}** · "
+                f"apuesta sugerida {mejor['kelly']:.1%} del bankroll (Kelly).")
+        else:
+            st.warning(
+                f"⚠️ **Ningún lado ofrece valor** con estos momios. El menos malo "
+                f"sería {lado} {linea} (EV {mejor['ev']:+.1%}), pero la cuota "
+                f"{fmt_momio(mejor['momio_decimal'])} no compensa: el modelo da "
+                f"{prob_lado:.1%} y necesitarías al menos {mejor['cuota_justa']:.2f}. "
+                f"Mejor no apostar este mercado.")
+
+        # Tabla de TODAS las líneas: porcentajes del modelo y cuotas justas,
+        # para comparar contra cualquier momio que ofrezca la casa.
+        st.subheader(f"Todas las líneas de {unidad} (referencia del modelo)")
+        filas = []
+        for l in lineas:
+            po = pred["overs"][l]
+            pu = 1.0 - po
+            filas.append({
+                "Línea": l,
+                "Over (modelo)": f"{po:.1%}",
+                "Cuota justa Over": round(1 / po, 2) if po > 0 else float("inf"),
+                "Under (modelo)": f"{pu:.1%}",
+                "Cuota justa Under": round(1 / pu, 2) if pu > 0 else float("inf"),
+                "Lado favorecido": "Over" if po >= pu else "Under",
+            })
+        st.dataframe(pd.DataFrame(filas), hide_index=True, width="stretch")
+        st.caption("Apuesta a un lado solo si el momio que te ofrecen es **mayor** "
+                   "que su cuota justa: ahí el pago supera el riesgo real (EV+).")
+
         etq = [f"Over {linea}", f"Under {linea}"]
         modelo_vals = [p_over, p_under]
         casa_vals = [rO["implicita"], rU["implicita"]]
