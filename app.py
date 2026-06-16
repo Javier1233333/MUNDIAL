@@ -13,36 +13,89 @@ import streamlit as st
 from utils import analytics as an
 
 st.set_page_config(page_title="Mundial 2026 · Analítica", page_icon="⚽",
-                   layout="wide")
+                   layout="wide", initial_sidebar_state="expanded")
 
-# CSS responsivo: en pantallas chicas las columnas de Streamlit no se apilan
-# solas (solo se comprimen), así que se fuerza el reacomodo con media queries.
+# Tema visual amigable. Se usan colores translúcidos (rgba con grises neutros)
+# para que las tarjetas se vean bien tanto en modo claro como oscuro.
 st.markdown("""
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+html, body, [class*="css"], button, input, select { font-family: 'Inter', sans-serif; }
+
+/* ---------- Banner principal (hero) ---------- */
+.hero {
+    background: linear-gradient(120deg, #15a05a 0%, #1379b0 52%, #7b46c4 100%);
+    color: #fff; padding: 1.5rem 1.7rem; border-radius: 18px;
+    margin-bottom: 1.3rem; box-shadow: 0 10px 28px rgba(20,30,60,.18);
+}
+.hero h1 { color:#fff !important; margin:0 0 .25rem; font-size:1.85rem;
+           font-weight:800; line-height:1.15; }
+.hero p { margin:0; opacity:.93; font-size:1.02rem; }
+.hero .pills { margin-top:.85rem; }
+.hero .pill { display:inline-block; background:rgba(255,255,255,.20);
+    padding:.28rem .75rem; border-radius:999px; font-size:.82rem;
+    margin:.15rem .4rem .15rem 0; font-weight:600; backdrop-filter:blur(4px); }
+
+/* ---------- Tarjetas de métricas ---------- */
+div[data-testid="stMetric"] {
+    background: rgba(130,130,150,.07);
+    border: 1px solid rgba(130,130,150,.20);
+    border-radius: 14px; padding: 0.95rem 1.05rem;
+    box-shadow: 0 2px 8px rgba(20,30,50,.05);
+    transition: transform .12s ease, box-shadow .12s ease;
+}
+div[data-testid="stMetric"]:hover {
+    transform: translateY(-2px); box-shadow: 0 7px 18px rgba(20,30,50,.12);
+}
+div[data-testid="stMetricLabel"] { font-weight:600; opacity:.8; }
+div[data-testid="stMetricValue"] { font-weight:800; }
+
+/* ---------- Avisos (success / error / warning / info) ---------- */
+div[data-testid="stAlert"] { border-radius:13px; border-left-width:5px; }
+
+/* ---------- Pestañas y selectores ---------- */
+button[data-baseweb="tab"] { font-weight:600; font-size:.95rem; }
+div[data-testid="stExpander"] { border-radius:13px; }
+
+/* ---------- Sidebar ---------- */
+section[data-testid="stSidebar"] { box-shadow: 2px 0 12px rgba(0,0,0,.05); }
+section[data-testid="stSidebar"] div[role="radiogroup"] label {
+    padding:.35rem .55rem; border-radius:10px; transition:background .12s ease;
+}
+section[data-testid="stSidebar"] div[role="radiogroup"] label:hover {
+    background: rgba(130,130,150,.12);
+}
+
+/* ---------- Tablas ---------- */
+div[data-testid="stDataFrame"] { border-radius:12px; overflow:hidden; }
+
+/* ---------- Responsivo (teléfono) ---------- */
 @media (max-width: 640px) {
-    /* Menos padding lateral para aprovechar el ancho del teléfono */
-    .block-container { padding: 3rem 0.8rem 2rem; }
+    .block-container { padding: 2.4rem 0.8rem 2rem; }
+    .hero { padding:1.2rem 1.1rem; border-radius:14px; }
+    .hero h1 { font-size:1.4rem; }
+    .hero p { font-size:.92rem; }
 
     div[data-testid="stHorizontalBlock"] { flex-wrap: wrap; row-gap: 0.5rem; }
 
-    /* Columnas a ancho completo: gráficas, tablas y selectores apilados */
     div[data-testid="stColumn"] {
         flex: 1 1 100% !important;
         width: 100% !important;
         min-width: 100% !important;
     }
 
-    /* Excepción: las métricas se acomodan en cuadrícula de 2 por fila */
+    /* Las métricas se acomodan en cuadrícula de 2 por fila */
     div[data-testid="stColumn"]:has(div[data-testid="stMetric"]) {
         flex: 1 1 calc(50% - 0.5rem) !important;
         width: calc(50% - 0.5rem) !important;
         min-width: calc(50% - 0.5rem) !important;
     }
 
-    div[data-testid="stMetricValue"] { font-size: 1.35rem; }
+    div[data-testid="stMetricValue"] { font-size: 1.3rem; }
     div[data-testid="stMetricLabel"] { font-size: 0.78rem; }
-    h1 { font-size: 1.55rem; }
-    h2, h3 { font-size: 1.15rem; }
+    h1 { font-size: 1.5rem; }
+    h2, h3 { font-size: 1.12rem; }
 }
 </style>
 """, unsafe_allow_html=True)
