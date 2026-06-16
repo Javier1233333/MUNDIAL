@@ -122,36 +122,156 @@ def get_proyeccion():
 teams = get_teams()
 matches = get_matches()
 
+# ---------------------------------------------------------------------------
+# Barra lateral: navegación amigable
+# ---------------------------------------------------------------------------
 st.sidebar.title("⚽ Mundial 2026")
-st.sidebar.caption("48 equipos · 104 partidos · Modelo Poisson + Monte Carlo")
-seccion = st.sidebar.radio("Sección", [
+st.sidebar.caption("Tu centro de analítica para el torneo")
+
+seccion = st.sidebar.radio("¿Qué quieres analizar?", [
+    "🏠 Inicio",
     "🎯 Simulador 1v1",
     "💰 Momios y Valor (EV)",
     "🟨 Tarjetas (Over/Under)",
     "🚩 Corners",
     "📅 Explorador de 104 Partidos",
 ])
+
+with st.sidebar.expander("❓ ¿Cómo se calcula todo esto?"):
+    st.markdown(
+        "- **Modelo de Poisson**: estima los goles esperados de cada equipo "
+        "según su ataque, la defensa rival, su forma reciente y el ranking FIFA.\n"
+        "- **Monte Carlo**: simula 10,000 partidos para confirmar las probabilidades.\n"
+        "- **Cancha neutral** para todos, salvo los anfitriones 🏠 (USA, "
+        "Canadá y México), que tienen ventaja de local.")
+
 st.sidebar.divider()
-st.sidebar.caption("Datos semilla calibrados (últimos 2 años). "
-                   "Repechajes y sorteo oficial dic-2025. "
-                   "Uso educativo: apuesta con responsabilidad.")
+st.sidebar.caption("📊 48 equipos · 104 partidos\n\n"
+                   "Datos calibrados (últimos 2 años) · Sorteo oficial dic-2025")
+st.sidebar.warning("🔞 Uso educativo. Apuesta con responsabilidad: nunca "
+                   "apuestes más de lo que puedes permitirte perder.")
+
+
+# ---------------------------------------------------------------------------
+# Banner principal (hero) dinámico según la sección
+# ---------------------------------------------------------------------------
+HEROS = {
+    "🏠 Inicio": ("¡Bienvenido a tu centro de analítica! ⚽",
+                  "Explora probabilidades, detecta apuestas con valor y proyecta "
+                  "el torneo completo. Empieza eligiendo una sección a la izquierda.",
+                  ["48 equipos", "104 partidos", "Modelo Poisson + Monte Carlo"]),
+    "🎯 Simulador 1v1": ("Simulador de partidos 1 vs 1 🎯",
+                         "Elige dos selecciones y mira quién tiene ventaja, los "
+                         "goles esperados y los marcadores más probables.",
+                         ["Probabilidades 1X2", "Over/Under", "Ambos anotan"]),
+    "💰 Momios y Valor (EV)": ("¿Vale la pena esta apuesta? 💰",
+                               "Escribe los momios de tu casa de apuestas y te decimos "
+                               "al instante si tienen valor según el modelo.",
+                               ["Detecta Value Bets", "Margen de la casa", "Kelly"]),
+    "🟨 Tarjetas (Over/Under)": ("Mercado de tarjetas 🟨",
+                                 "Cuántas tarjetas esperar en un partido y la "
+                                 "probabilidad de cada línea Over/Under.",
+                                 ["Amarillas", "Rojas", "Over/Under"]),
+    "🚩 Corners": ("Mercado de tiros de esquina 🚩",
+                   "Corners esperados por equipo y probabilidades de las líneas "
+                   "totales del partido.",
+                   ["Corners por equipo", "Líneas totales", "Por rol"]),
+    "📅 Explorador de 104 Partidos": ("El torneo completo, partido por partido 📅",
+                                      "Proyección de los 104 partidos, la tabla de "
+                                      "grupos y el campeón que predice el modelo.",
+                                      ["Fase de grupos", "Eliminatorias", "Campeón"]),
+}
+
+
+def hero(seccion: str):
+    """Dibuja el banner superior con título, subtítulo y 'pills' de la sección."""
+    titulo, subtitulo, pills = HEROS[seccion]
+    chips = "".join(f'<span class="pill">{p}</span>' for p in pills)
+    st.markdown(
+        f'<div class="hero"><h1>{titulo}</h1><p>{subtitulo}</p>'
+        f'<div class="pills">{chips}</div></div>', unsafe_allow_html=True)
+
+
+hero(seccion)
+
+
+def glosario():
+    """Expander reutilizable que explica los términos de apuestas en simple."""
+    with st.expander("📖 ¿Qué significan estos términos? (toca para abrir)"):
+        st.markdown(
+            "- **Momio / cuota**: lo que paga la casa. *Decimal* 2.50 = ganas 2.50 "
+            "por cada 1 apostado (incluye tu apuesta). *Americano* +150 / −200.\n"
+            "- **Probabilidad implícita**: la probabilidad que la casa le asigna a "
+            "un resultado = 1 ÷ momio decimal.\n"
+            "- **Margen (overround)**: la comisión oculta de la casa. Si las "
+            "probabilidades implícitas suman más de 100%, ese excedente es su ganancia.\n"
+            "- **Valor Esperado (EV)**: ganancia promedio por unidad apostada. "
+            "**EV positivo = apuesta de valor** (la casa paga de más según el modelo).\n"
+            "- **Cuota justa**: el momio mínimo en el que la apuesta empieza a "
+            "tener valor (1 ÷ probabilidad del modelo).\n"
+            "- **Kelly**: qué porcentaje de tu dinero apostar para crecer sin "
+            "arriesgar de más.\n"
+            "- **Over / Under**: apostar a que habrá *más* (Over) o *menos* (Under) "
+            "de cierta cantidad (goles, tarjetas, corners).")
 
 
 def selector_equipos(key: str):
-    """Par de selectores de equipo sin repetición."""
-    c1, c2 = st.columns(2)
+    """Par de selectores de equipo sin repetición, con ayuda y un 'VS' al centro."""
     nombres = sorted(teams.equipo)
-    ea = c1.selectbox("Equipo A", nombres, index=nombres.index("México"), key=f"{key}_a")
-    eb = c2.selectbox("Equipo B", [n for n in nombres if n != ea],
-                      index=0, key=f"{key}_b")
+    c1, cvs, c2 = st.columns([5, 1, 5])
+    ea = c1.selectbox("🔵 Equipo A", nombres, index=nombres.index("México"),
+                      key=f"{key}_a", help="Selecciona el primer equipo.")
+    cvs.markdown("<div style='text-align:center;font-weight:800;opacity:.6;"
+                 "padding-top:1.9rem;'>VS</div>", unsafe_allow_html=True)
+    eb = c2.selectbox("🔴 Equipo B", [n for n in nombres if n != ea],
+                      index=0, key=f"{key}_b", help="Selecciona el rival.")
     return teams.loc[ea], teams.loc[eb]
 
 
 # ===========================================================================
+# 0) INICIO
+# ===========================================================================
+if seccion == "🏠 Inicio":
+    st.subheader("👋 ¿Por dónde empezar?")
+    st.markdown(
+        "Esta app convierte estadísticas del Mundial en **probabilidades claras** "
+        "para que tomes mejores decisiones. Elige una herramienta en el menú de la "
+        "izquierda — aquí tienes un resumen de cada una:")
+
+    c1, c2 = st.columns(2)
+    with c1:
+        st.info("🎯 **Simulador 1v1**\n\nElige dos equipos y mira quién gana, los "
+                "goles esperados y los marcadores más probables.")
+        st.success("💰 **Momios y Valor (EV)**\n\nEscribe los momios de tu casa de "
+                   "apuestas y descubre al instante si la apuesta tiene valor.")
+        st.warning("🟨 **Tarjetas**\n\nCuántas tarjetas esperar y la probabilidad "
+                   "de cada línea Over/Under.")
+    with c2:
+        st.info("🚩 **Corners**\n\nTiros de esquina esperados por equipo y las "
+                "líneas totales del partido.")
+        st.success("📅 **Explorador de 104 Partidos**\n\nLa proyección completa del "
+                   "torneo, la tabla de grupos y el campeón del modelo.")
+        st.warning("🏠 **Anfitriones con ventaja**\n\nTodo es cancha neutral, salvo "
+                   "USA, Canadá y México, que juegan en casa.")
+
+    st.divider()
+    st.subheader("🏆 Los 8 más fuertes según ranking FIFA")
+    top = teams.sort_values("puntos_fifa", ascending=False).head(8)
+    fig = px.bar(top, x="equipo", y="puntos_fifa", text_auto=".0f",
+                 color="puntos_fifa", color_continuous_scale="Greens",
+                 labels={"equipo": "", "puntos_fifa": "Puntos FIFA"})
+    fig.update_layout(coloraxis_showscale=False,
+                      title="Favoritos por puntos FIFA (un vistazo rápido)")
+    st.plotly_chart(fig, width="stretch")
+
+    glosario()
+    st.caption("👉 Listo para empezar: abre **🎯 Simulador 1v1** o "
+               "**💰 Momios y Valor (EV)** en el menú de la izquierda.")
+
+# ===========================================================================
 # 1) SIMULADOR 1v1
 # ===========================================================================
-if seccion == "🎯 Simulador 1v1":
-    st.title("🎯 Simulador de Probabilidades 1v1")
+elif seccion == "🎯 Simulador 1v1":
     st.caption("Modelo de Poisson: λ combina ataque propio, defensa rival, "
                "forma reciente (últimos 5) y diferencia de puntos FIFA.")
 
@@ -224,14 +344,16 @@ if seccion == "🎯 Simulador 1v1":
 # 1.5) ANALIZADOR DE MOMIOS Y VALOR ESPERADO (EV)
 # ===========================================================================
 elif seccion == "💰 Momios y Valor (EV)":
-    st.title("💰 Analizador de Momios y Valor Esperado (EV)")
     st.caption("Compara en tiempo real las probabilidades del modelo contra los "
                "momios del mercado. Detecta apuestas de valor (EV+) y revela la "
                "comisión oculta (margen) de la casa. Todo se recalcula al teclear, "
                "sin botón de envío.")
+    glosario()
 
     formato = st.radio("Formato de momio", ["Decimal", "Americano"],
-                       horizontal=True, key="ev_fmt")
+                       horizontal=True, key="ev_fmt",
+                       help="Decimal: 2.50. Americano: +150 o −200. "
+                            "Se convierte automáticamente para los cálculos.")
 
     def a_decimal(valor: float) -> float:
         """Normaliza el momio tecleado al formato decimal para los cálculos."""
@@ -485,7 +607,6 @@ elif seccion == "💰 Momios y Valor (EV)":
 # 2) TARJETAS
 # ===========================================================================
 elif seccion == "🟨 Tarjetas (Over/Under)":
-    st.title("🟨 Módulo de Tarjetas")
     st.caption("Total esperado = suma de promedios de ambos equipos × factor "
                "de rivalidad. Over/Under con distribución de Poisson.")
 
@@ -536,7 +657,6 @@ elif seccion == "🟨 Tarjetas (Over/Under)":
 # 3) CORNERS
 # ===========================================================================
 elif seccion == "🚩 Corners":
-    st.title("🚩 Módulo de Tiros de Esquina")
     st.caption("E[corners A] = (corners a favor de A + corners en contra de B)/2 "
                "× rol. Favorito ×1.12, no favorito ×0.90 (dominio de posesión).")
 
@@ -583,7 +703,6 @@ elif seccion == "🚩 Corners":
 # 4) EXPLORADOR DE 104 PARTIDOS
 # ===========================================================================
 else:
-    st.title("📅 Explorador de los 104 Partidos")
     st.caption("Fase de grupos con calendario oficial; la eliminación directa "
                "se proyecta con el modelo (siembra por puntos esperados, "
                "simplificación del bracket oficial).")
