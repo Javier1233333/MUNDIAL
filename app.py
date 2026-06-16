@@ -379,6 +379,7 @@ elif seccion == "💰 Momios y Valor (EV)":
 
     mercado = st.selectbox("Mercado a analizar", [
         "Resultado 1X2 (Equipo A / Empate / Equipo B)",
+        "⚽ Goles Totales Over/Under",
         "Tarjetas Over/Under",
         "Corners Over/Under",
     ], key="ev_mkt")
@@ -487,7 +488,121 @@ elif seccion == "💰 Momios y Valor (EV)":
         st.plotly_chart(fig, width="stretch")
 
     # -----------------------------------------------------------------------
-    # B) OVER/UNDER (Tarjetas o Corners)
+    # B) GOLES TOTALES OVER/UNDER — ¿cuántos goles cree la casa?
+    # -----------------------------------------------------------------------
+    elif mercado.startswith("⚽ Goles"):
+        st.markdown("Escribe los momios **Over/Under de goles** y la app despeja "
+                    "**cuántos goles totales creen las casas** que habrá (su "
+                    "expectativa implícita), y lo compara con el modelo.")
+        a, b = selector_equipos("evgo")
+        p = an.probabilidades_1v1(a, b)
+        lam_modelo = p["lam_a"] + p["lam_b"]
+
+        lineas_disp = [0.5, 1.5, 2.5, 3.5, 4.5, 5.5]
+        lineas_sel = st.multiselect(
+            "Líneas de goles a analizar", lineas_disp, default=[1.5, 2.5, 3.5],
+            help="Mientras más líneas ingreses, más estable es la estimación de "
+                 "lo que cree la casa.")
+
+        if not lineas_sel:
+            st.warning("Selecciona al menos una línea de goles para analizar.")
+        else:
+            st.subheader("Momios Over/Under por línea")
+            pares_fair = []     # (línea, P(Over) justa de la casa) para ajustar λ
+            filas = []
+            evaluaciones = []   # para la recomendación global
+            for l in sorted(lineas_sel):
+                cl, cO, cU = st.columns([1.2, 2, 2])
+                cl.markdown(f"<div style='padding-top:1.9rem;font-weight:700;'>"
+                            f"⚽ {l} goles</div>", unsafe_allow_html=True)
+                mO = cO.number_input(f"Over {l}", value=d_over, step=paso,
+                                     min_value=rango[0], max_value=rango[1],
+                                     key=f"go_o_{l}")
+                mU = cU.number_input(f"Under {l}", value=d_under, step=paso,
+                                     min_value=rango[0], max_value=rango[1],
+                                     key=f"go_u_{l}")
+                dO, dU = a_decimal(mO), a_decimal(mU)
+                dv = an.devig_dos_vias(dO, dU)        # quita el margen
+                pares_fair.append((l, dv["fair_a"]))  # fair_a = Over
+
+                # Probabilidad del modelo y EV de cada lado
+                p_over_mod = an.prob_over_poisson(l, lam_modelo)
+                rO = an.valor_esperado(p_over_mod, dO)
+                rU = an.valor_esperado(1 - p_over_mod, dU)
+                evaluaciones += [(f"Over {l}", rO, p_over_mod),
+                                 (f"Under {l}", rU, 1 - p_over_mod)]
+                filas.append({
+                    "Línea": l,
+                    "Over (casa)": f"{dv['fair_a']:.1%}",
+                    "Over (modelo)": f"{p_over_mod:.1%}",
+                    "EV Over": f"{rO['ev']:+.1%}",
+                    "EV Under": f"{rU['ev']:+.1%}",
+                    "Margen casa": f"{dv['margen']:.1%}",
+                })
+
+            # ¿Cuántos goles cree la casa? (λ ajustada a todas las líneas)
+            lam_casa = an.lambda_implicita_casa(pares_fair)
+            st.subheader("🏦 ¿Cuántos goles totales cree la casa?")
+            m1, m2, m3 = st.columns(3)
+            m1.metric("Goles totales · CASA", f"{lam_casa:.2f}",
+                      help="Goles esperados que implican los momios de la casa.")
+            m2.metric("Goles totales · MODELO", f"{lam_modelo:.2f}",
+                      f"{lam_modelo - lam_casa:+.2f} vs casa",
+                      help="Goles esperados según nuestro modelo de Poisson.")
+            diff = lam_modelo - lam_casa
+            m3.metric("Diferencia", f"{abs(diff):.2f} goles",
+                      "Modelo espera más" if diff > 0 else "Casa espera más")
+
+            if abs(diff) < 0.15:
+                st.info("🤝 La casa y el modelo casi coinciden en los goles "
+                        "esperados: mercado eficiente, poco margen de valor.")
+            elif diff > 0:
+                st.success(f"📈 El modelo espera **{diff:.2f} goles más** que la "
+                           f"casa → el lado **Over** tiende a tener valor.")
+            else:
+                st.error(f"📉 El modelo espera **{abs(diff):.2f} goles menos** que "
+                         f"la casa → el lado **Under** tiende a tener valor.")
+
+            # Distribución de goles totales: casa vs modelo
+            k = list(range(9))
+            dcasa = an.dist_goles_totales(lam_casa, 8)
+            dmod = an.dist_goles_totales(lam_modelo, 8)
+            fig = go.Figure()
+            fig.add_bar(x=k, y=dcasa, name=f"Casa (λ={lam_casa:.2f})",
+                        marker_color="#e74c3c",
+                        text=[f"{v:.0%}" for v in dcasa], textposition="outside")
+            fig.add_bar(x=k, y=dmod, name=f"Modelo (λ={lam_modelo:.2f})",
+                        marker_color="#2ecc71",
+                        text=[f"{v:.0%}" for v in dmod], textposition="outside")
+            fig.update_layout(barmode="group", yaxis_tickformat=".0%",
+                              xaxis_title="Goles totales en el partido",
+                              title="Probabilidad de cada total de goles: casa vs modelo",
+                              legend=dict(orientation="h", y=-0.2), height=420)
+            st.plotly_chart(fig, width="stretch")
+
+            # Tabla por línea (probabilidades y EV)
+            st.subheader("Detalle por línea")
+            st.dataframe(pd.DataFrame(filas), hide_index=True, width="stretch")
+
+            # Recomendación global: mejor EV entre todas las líneas y lados
+            st.subheader("Recomendación")
+            etiqueta, mejor, prob = max(evaluaciones, key=lambda e: e[1]["ev"])
+            if mejor["es_valor"]:
+                st.success(
+                    f"🎯 **Apostar {etiqueta} goles** — es la jugada con más valor. "
+                    f"El modelo le da **{prob:.1%}** y la casa solo implica "
+                    f"{mejor['implicita']:.1%} con su cuota "
+                    f"{fmt_momio(mejor['momio_decimal'])}. "
+                    f"EV **{mejor['ev']:+.1%}** · cuota justa {mejor['cuota_justa']:.2f} "
+                    f"· Kelly {mejor['kelly']:.1%} del bankroll.")
+            else:
+                st.warning(
+                    f"⚠️ **Ninguna línea ofrece valor** con estos momios. La menos "
+                    f"mala sería {etiqueta} (EV {mejor['ev']:+.1%}), pero no compensa. "
+                    f"Mejor no apostar este mercado.")
+
+    # -----------------------------------------------------------------------
+    # C) OVER/UNDER (Tarjetas o Corners)
     # -----------------------------------------------------------------------
     else:
         es_tarjetas = mercado.startswith("Tarjetas")

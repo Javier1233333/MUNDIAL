@@ -13,6 +13,7 @@ import os
 import numpy as np
 import pandas as pd
 from scipy.stats import poisson
+from scipy.optimize import brentq, minimize_scalar
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(BASE_DIR, "data")
@@ -215,6 +216,53 @@ def margen_overround(momio_local: float, momio_empate: float,
         "limpia_empate": p_e / suma if suma else 0.0,
         "limpia_visitante": p_v / suma if suma else 0.0,
     }
+
+
+def devig_dos_vias(momio_a: float, momio_b: float) -> dict:
+    """Quita el margen de un mercado de 2 vías (p. ej. Over vs Under) y
+    devuelve las probabilidades 'justas' que suman 100%."""
+    pa = probabilidad_implicita(momio_a)
+    pb = probabilidad_implicita(momio_b)
+    s = pa + pb
+    return {"fair_a": pa / s if s else 0.0, "fair_b": pb / s if s else 0.0,
+            "suma": s, "margen": s - 1.0}
+
+
+def prob_over_poisson(linea: float, lam_total: float) -> float:
+    """P(total > línea) con total ~ Poisson(lam_total). Para líneas x.5,
+    P(total > 2.5) = P(total ≥ 3) = 1 - CDF(2)."""
+    return float(1 - poisson.cdf(int(linea), lam_total))
+
+
+def lambda_implicita_linea(prob_over_fair: float, linea: float) -> float:
+    """Goles totales esperados (λ) que cree la casa, despejados de UNA línea:
+    busca la λ de Poisson cuya P(Over línea) iguala la probabilidad justa
+    (sin margen) de la casa. P(Over) crece monótonamente con λ → raíz única."""
+    if prob_over_fair <= 0:
+        return 0.0
+    if prob_over_fair >= 1:
+        return 25.0
+    return float(brentq(lambda lam: prob_over_poisson(linea, lam) - prob_over_fair,
+                        1e-6, 25.0))
+
+
+def lambda_implicita_casa(pares: list[tuple[float, float]]) -> float:
+    """Goles totales que cree la casa a partir de VARIAS líneas. Ajusta una
+    sola λ de Poisson que mejor reproduce las P(Over) justas de todas las
+    líneas (mínimos cuadrados). Más líneas → estimación más estable."""
+    pares = [(l, p) for l, p in pares if 0 < p < 1]
+    if not pares:
+        return 0.0
+    if len(pares) == 1:
+        return lambda_implicita_linea(pares[0][1], pares[0][0])
+    err = lambda lam: sum((prob_over_poisson(l, lam) - p) ** 2 for l, p in pares)
+    return float(minimize_scalar(err, bounds=(0.05, 25.0), method="bounded").x)
+
+
+def dist_goles_totales(lam_total: float, max_g: int = 8) -> list[float]:
+    """Distribución de goles totales del partido ~ Poisson(lam_total),
+    de 0 a max_g goles (para graficar lo que cree la casa vs el modelo)."""
+    return [float(x) for x in poisson.pmf(np.arange(max_g + 1), lam_total)]
 
 
 def valor_esperado(prob_modelo: float, momio_decimal: float) -> dict:
