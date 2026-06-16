@@ -4,7 +4,7 @@ Generador de datos semilla para el Mundial 2026 (48 equipos, 104 partidos).
 
 - data/world_cup_data.csv : métricas por equipo (ranking FIFA, goles, corners, tarjetas, forma)
 - data/matches.csv        : calendario de los 104 partidos (72 de grupos + 32 de eliminación)
-
+b
 NOTA: Grupos según el sorteo oficial (dic 2025) + repechajes confirmados
 (República Checa, Bosnia y Herzegovina, Suecia, Turquía, RD Congo, Irak).
 Las métricas de rendimiento son datos semilla realistas (últimos 2 años),

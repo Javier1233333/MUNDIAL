@@ -203,7 +203,7 @@ elif seccion == "💰 Momios y Valor (EV)":
         rango = (-100000.0, 100000.0)
 
     mercado = st.selectbox("Mercado a analizar", [
-        "Resultado 1X2 (Local / Empate / Visitante)",
+        "Resultado 1X2 (Equipo A / Empate / Equipo B)",
         "Tarjetas Over/Under",
         "Corners Over/Under",
     ], key="ev_mkt")
@@ -215,18 +215,31 @@ elif seccion == "💰 Momios y Valor (EV)":
     # -----------------------------------------------------------------------
     if mercado.startswith("Resultado"):
         a, b = selector_equipos("ev")
+
+        def con_casa(equipo: str) -> str:
+            """Marca al anfitrión con 🏠 (ventaja de local); el resto, neutral."""
+            return f"{equipo} 🏠" if equipo in an.ANFITRIONES else equipo
+
+        hay_anfitrion = a.equipo in an.ANFITRIONES or b.equipo in an.ANFITRIONES
+        if hay_anfitrion:
+            st.info(f"🏠 Hay anfitrión en cancha: la ventaja de local "
+                    f"(+{(an.VENTAJA_LOCAL - 1):.0%} goles esperados) aplica solo a "
+                    f"USA, Canadá y México. El resto se juega en suelo neutral.")
+        else:
+            st.caption("Partido en suelo neutral: ser equipo A o B no da ventaja.")
+
         p = an.probabilidades_1v1(a, b)
         prob_modelo = {"Local": p["p_win"], "Empate": p["p_draw"],
                        "Visitante": p["p_loss"]}
 
         st.subheader("Momios del mercado")
         cL, cE, cV = st.columns(3)
-        mL = cL.number_input(f"Local · {a.equipo}", value=defaults_1x2[0],
+        mL = cL.number_input(con_casa(a.equipo), value=defaults_1x2[0],
                              step=paso, min_value=rango[0], max_value=rango[1],
                              key="ev_mL")
         mE = cE.number_input("Empate", value=defaults_1x2[1], step=paso,
                              min_value=rango[0], max_value=rango[1], key="ev_mE")
-        mV = cV.number_input(f"Visitante · {b.equipo}", value=defaults_1x2[2],
+        mV = cV.number_input(con_casa(b.equipo), value=defaults_1x2[2],
                              step=paso, min_value=rango[0], max_value=rango[1],
                              key="ev_mV")
 
@@ -250,12 +263,13 @@ elif seccion == "💰 Momios y Valor (EV)":
 
         # Tarjetas de EV por resultado, actualizadas al teclear
         st.subheader("Valor esperado por resultado")
-        etiquetas = {"Local": a.equipo, "Empate": "Empate", "Visitante": b.equipo}
+        etiquetas = {"Local": con_casa(a.equipo), "Empate": "Empate",
+                     "Visitante": con_casa(b.equipo)}
         cols = st.columns(3)
         for col, clave in zip(cols, ["Local", "Empate", "Visitante"]):
             r = resultados[clave]
             col.metric(
-                f"{clave} · {etiquetas[clave]}",
+                f"Gana {etiquetas[clave]}" if clave != "Empate" else "Empate",
                 f"EV {r['ev']:+.1%}",
                 f"Modelo {r['prob_modelo']:.1%} vs Casa {r['implicita']:.1%}",
                 delta_color="normal" if r["es_valor"] else "inverse",
@@ -264,7 +278,7 @@ elif seccion == "💰 Momios y Valor (EV)":
         # Alertas de color por cada resultado
         for clave in ["Local", "Empate", "Visitante"]:
             r = resultados[clave]
-            nombre = f"{clave} ({etiquetas[clave]})"
+            nombre = etiquetas[clave] if clave == "Empate" else f"gana {etiquetas[clave]}"
             if r["es_valor"]:
                 st.success(
                     f"✅ **Apuesta de valor — {nombre}**: el modelo asigna "
@@ -280,7 +294,7 @@ elif seccion == "💰 Momios y Valor (EV)":
                     f"EV **{r['ev']:+.1%}** (necesitarías ≥ {r['cuota_justa']:.2f}).")
 
         # Gráfico: Modelo vs Implícita de la casa (barras horizontales)
-        etq = [f"Local · {a.equipo}", "Empate", f"Visitante · {b.equipo}"]
+        etq = [f"Gana {con_casa(a.equipo)}", "Empate", f"Gana {con_casa(b.equipo)}"]
         modelo_vals = [resultados[k]["prob_modelo"] for k in
                        ["Local", "Empate", "Visitante"]]
         casa_vals = [resultados[k]["implicita"] for k in

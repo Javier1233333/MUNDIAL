@@ -22,6 +22,17 @@ MAX_GOLES = 10       # truncamiento de la matriz de Poisson
 VENTAJA_FAVORITO = 1.12   # multiplicador de corners cuando el equipo es favorito
 CASTIGO_NO_FAVORITO = 0.90
 
+# El Mundial 2026 se juega en cancha neutral para todos los equipos, salvo los
+# tres anfitriones, que sí juegan en casa y reciben ventaja de local.
+ANFITRIONES = {"México", "Canadá", "Estados Unidos"}
+VENTAJA_LOCAL = 1.25      # multiplicador de goles esperados del anfitrión (+25%)
+
+
+def factor_local(equipo: str) -> float:
+    """Ventaja de local: solo aplica a los anfitriones (USA, Canadá, México);
+    para el resto el partido es en suelo neutral (factor 1.0)."""
+    return VENTAJA_LOCAL if equipo in ANFITRIONES else 1.0
+
 
 # ---------------------------------------------------------------------------
 # Carga de datos
@@ -53,11 +64,14 @@ def factor_ranking(pts_a: float, pts_b: float) -> float:
 def lambdas_partido(a: pd.Series, b: pd.Series) -> tuple[float, float]:
     """Goles esperados (λ) de cada equipo combinando ataque propio,
     defensa rival, forma y ranking FIFA."""
-    # Fuerza de ataque/defensa relativa al promedio del torneo
+    # Fuerza de ataque/defensa relativa al promedio del torneo. La ventaja de
+    # local solo se aplica a los anfitriones; el resto juega en suelo neutral.
     lam_a = MU_GOLES * (a.gf_pp / MU_GOLES) * (b.gc_pp / MU_GOLES) \
-        * factor_forma(a.forma_5) * factor_ranking(a.puntos_fifa, b.puntos_fifa)
+        * factor_forma(a.forma_5) * factor_ranking(a.puntos_fifa, b.puntos_fifa) \
+        * factor_local(a.equipo)
     lam_b = MU_GOLES * (b.gf_pp / MU_GOLES) * (a.gc_pp / MU_GOLES) \
-        * factor_forma(b.forma_5) * factor_ranking(b.puntos_fifa, a.puntos_fifa)
+        * factor_forma(b.forma_5) * factor_ranking(b.puntos_fifa, a.puntos_fifa) \
+        * factor_local(b.equipo)
     return max(lam_a, 0.15), max(lam_b, 0.15)
 
 
